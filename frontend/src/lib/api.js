@@ -46,7 +46,6 @@
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
 export async function api(path, { method='GET', body, token, relative=false } = {}) {
-  // Use relative path only when relative=true
   const url = relative ? path : `${BASE}${path}`
 
   const res = await fetch(url, {
@@ -59,14 +58,16 @@ export async function api(path, { method='GET', body, token, relative=false } = 
   })
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
+    const errText = await res.text()
+    const err = errText ? JSON.parse(errText) : { error: res.statusText }
     throw new Error(err.error || 'Request failed')
   }
 
-  if (res.headers.get('content-type')?.includes('application/pdf')) {
-    return res
-  }
+  if (res.headers.get('content-type')?.includes('application/pdf')) return res
 
-  return res.json()
+  // safely parse JSON
+  const text = await res.text()
+  let data
+  try { data = text ? JSON.parse(text) : {} } catch { data = {} }
+  return data
 }
-
