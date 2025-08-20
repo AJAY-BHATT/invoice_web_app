@@ -83,7 +83,7 @@ export default function Login() {
     if (!password) return setError('Password is required');
 
     try {
-      const data = await fetch('/auth/login', { method:'POST', body:{ email, password } });
+      const data = await api('/auth/login', { method:'POST', body:{ email, password } });
       dispatch(setAuth(data));
       nav('/products');
     } catch (err) {
