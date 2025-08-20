@@ -1,54 +1,7 @@
-// const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-
-// export async function api(path, { method='GET', body, token } = {}) {
-//   const res = await fetch(`${BASE}${path}`, {
-//     method,
-//     headers: {
-//       'Content-Type': 'application/json',
-//       ...(token ? { Authorization: `Bearer ${token}` } : {})
-//     },
-//     body: body ? JSON.stringify(body) : undefined
-//   })
-//   if (!res.ok) {
-//     const err = await res.json().catch(()=>({error:res.statusText}))
-//     throw new Error(err.error || 'Request failed')
-//   }
-//   if (res.headers.get('content-type')?.includes('application/pdf')) {
-//     return res
-//   }
-//   return res.json()
-// }
-// src/lib/api.js
-// 2
-
-// const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
-// export async function api(path, { method = 'GET', body, token } = {}) {
-//   const res = await fetch(`${BASE}${path}`, {
-//     method,
-//     headers: {
-//       'Content-Type': 'application/json',
-//       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-//     },
-//     body: body ? JSON.stringify(body) : undefined,
-//   });
-
-//   // Handle errors
-//   if (!res.ok) {
-//     const err = await res.json().catch(() => ({ error: res.statusText }));
-//     throw new Error(err.error || 'Request failed');
-//   }
-
-//   // Return JSON (or PDF for invoices if needed)
-//   if (res.headers.get('content-type')?.includes('application/pdf')) return res;
-//   return res.json();
-// }
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
-export async function api(path, { method='GET', body, token, relative=false } = {}) {
-  const url = relative ? path : `${BASE}${path}`
-
-  const res = await fetch(url, {
+export async function api(path, { method='GET', body, token } = {}) {
+  const res = await fetch(`${BASE}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -56,18 +9,39 @@ export async function api(path, { method='GET', body, token, relative=false } = 
     },
     body: body ? JSON.stringify(body) : undefined
   })
-
   if (!res.ok) {
-    const errText = await res.text()
-    const err = errText ? JSON.parse(errText) : { error: res.statusText }
+    const err = await res.json().catch(()=>({error:res.statusText}))
     throw new Error(err.error || 'Request failed')
   }
+  if (res.headers.get('content-type')?.includes('application/pdf')) {
+    return res
+  }
+  return res.json()
+}
+src/lib/api.js
+2
 
-  if (res.headers.get('content-type')?.includes('application/pdf')) return res
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-  // safely parse JSON
-  const text = await res.text()
-  let data
-  try { data = text ? JSON.parse(text) : {} } catch { data = {} }
-  return data
+export async function api(path, { method = 'GET', body, token } = {}) {
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  // Handle errors
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || 'Request failed');
+  }
+
+  // Return JSON (or PDF for invoices if needed)
+  if (res.headers.get('content-type')?.includes('application/pdf')) return res;
+  return res.json();
+}
+
 }
