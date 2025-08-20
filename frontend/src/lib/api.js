@@ -18,4 +18,3 @@ export async function api(path, { method='GET', body, token } = {}) {
   }
   return res.json()
 }
-
