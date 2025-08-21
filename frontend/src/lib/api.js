@@ -21,12 +21,9 @@
 
 // api.js
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-
-// Special routes that should always use relative path
 const DIRECT_ROUTES = ['/auth/login', '/auth/register'];
 
 export async function api(path, { method = 'GET', body, token } = {}) {
-  // If path is login/register → call directly (relative URL)
   const url = DIRECT_ROUTES.includes(path) ? path : `${BASE}${path}`;
 
   const res = await fetch(url, {
@@ -38,15 +35,23 @@ export async function api(path, { method = 'GET', body, token } = {}) {
     body: body ? JSON.stringify(body) : undefined
   });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || 'Request failed');
+  // Handle empty responses safely
+  const contentType = res.headers.get('content-type');
+  let data = null;
+
+  if (contentType && contentType.includes('application/json')) {
+    const text = await res.text();
+    data = text ? JSON.parse(text) : null; // parse only if text is not empty
   }
 
-  if (res.headers.get('content-type')?.includes('application/pdf')) {
+  if (!res.ok) {
+    throw new Error(data?.error || res.statusText || 'Request failed');
+  }
+
+  // If PDF, return raw response
+  if (contentType && contentType.includes('application/pdf')) {
     return res;
   }
 
-  return res.json();
+  return data;
 }
-
